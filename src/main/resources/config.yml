@@ -1,0 +1,23 @@
+arena:
+  world: world
+  region: sandpvp
+  reset-interval-seconds: 900
+  broadcast-reset: true
+  reset-message: "&6&lDUCKY PVP &8» &eArena reset! New kit: &f%kit%"
+  enter-message: "&6&lDUCKY PVP &8» &7Current kit: &f%kit%"
+
+reset:
+  remove-temporary-entities: true
+  temporary-entities:
+    - ENDER_CRYSTAL
+    - PRIMED_TNT
+    - ITEM
+    - ARROW
+    - SPECTRAL_ARROW
+    - TRIDENT
+    - FALLING_BLOCK
+    - FIREWORK_ROCKET
+
+kits:
+  heal-on-enter: true
+  feed-on-enter: true
