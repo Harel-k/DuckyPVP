@@ -6,7 +6,26 @@ arena:
   reset-interval-seconds: 900
   broadcast-reset: true
   reset-message: "&6&lDUCKY PVP &8» &eArena reset! New kit: &f%kit%"
-  enter-message: "&6&lDUCKY PVP &8» &7Current kit: &f%kit%"
+
+ui:
+  entry-title:
+    enabled: true
+    title: "&6&lWELCOME TO DUCKY PVP"
+    subtitle: "&7Kit: &f%kit% &8• &7Reset in &f%time%"
+    fade-in: 10
+    stay: 50
+    fade-out: 10
+  kit-change-title:
+    enabled: true
+    title: "&e&lNEW KIT"
+    subtitle: "&f%kit%"
+  bossbar:
+    enabled: true
+    title: "&6Kit: &f%kit% &8• &eReset in &f%time%"
+    color: YELLOW
+    style: SOLID
+  vote-menu:
+    title: "&8Vote for the Next Kit"
 
 reset:
   remove-temporary-entities: true
