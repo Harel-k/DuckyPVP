@@ -1,6 +1,8 @@
 arena:
   world: world
   region: sandpvp
+  excluded-regions:
+    - spawn
   reset-interval-seconds: 900
   broadcast-reset: true
   reset-message: "&6&lDUCKY PVP &8» &eArena reset! New kit: &f%kit%"
