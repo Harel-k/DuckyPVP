@@ -27,6 +27,28 @@ ui:
   vote-menu:
     title: "&8Vote for the Next Kit"
 
+combat:
+  enabled: true
+  entry-lock-seconds: 10
+  pvp-lock-seconds: 20
+  bypass-permission: duckypvp.combat.bypass
+  blocked-commands:
+    - spawn
+    - rtp
+    - wild
+    - home
+    - back
+    - warp
+    - tpa
+    - tpahere
+    - tpaccept
+  ui:
+    actionbar: "&c&lCOMBAT &8» &f%time%s &7• &cYou cannot leave the arena"
+  messages:
+    command-blocked: "&c&lCOMBAT &8» &7You cannot use &f/%command% &7for another &c%time%s&7."
+    exit-blocked: "&c&lCOMBAT &8» &7You cannot leave the PvP arena for another &c%time%s&7."
+    released: "&a&lCOMBAT &8» &7You can now leave the PvP arena."
+
 reset:
   remove-temporary-entities: true
   temporary-entities:
