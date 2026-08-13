@@ -5,6 +5,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public final class DuckyPVP extends JavaPlugin {
     private KitManager kitManager;
+    private VoteManager voteManager;
     private ArenaManager arenaManager;
 
     @Override
@@ -14,23 +15,29 @@ public final class DuckyPVP extends JavaPlugin {
 
         try {
             kitManager = new KitManager(this);
-            arenaManager = new ArenaManager(this, kitManager);
+            voteManager = new VoteManager(kitManager);
+            arenaManager = new ArenaManager(this, kitManager, voteManager);
         } catch (Exception ex) {
             getLogger().severe("DuckyPVP could not start: " + ex.getMessage());
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
 
-        getServer().getPluginManager().registerEvents(
-                new ArenaListener(this, arenaManager, kitManager),
-                this
-        );
+        getServer().getPluginManager().registerEvents(new ArenaListener(this, arenaManager, kitManager), this);
 
-        PluginCommand command = getCommand("duckypvp");
-        if (command != null) {
-            DuckyPvpCommand executor = new DuckyPvpCommand(this, arenaManager, kitManager);
-            command.setExecutor(executor);
-            command.setTabCompleter(executor);
+        VoteKitMenu voteMenu = new VoteKitMenu(this, kitManager, voteManager);
+        getServer().getPluginManager().registerEvents(voteMenu, this);
+
+        PluginCommand adminCommand = getCommand("duckypvp");
+        if (adminCommand != null) {
+            DuckyPvpCommand executor = new DuckyPvpCommand(this, arenaManager, kitManager, voteManager);
+            adminCommand.setExecutor(executor);
+            adminCommand.setTabCompleter(executor);
+        }
+
+        PluginCommand voteCommand = getCommand("votekit");
+        if (voteCommand != null) {
+            voteCommand.setExecutor(voteMenu);
         }
 
         arenaManager.start();
@@ -55,6 +62,7 @@ public final class DuckyPVP extends JavaPlugin {
     public void reloadDuckyPvp() {
         reloadConfig();
         kitManager.reload();
+        voteManager.sanitizeAfterReload();
         arenaManager.reload();
     }
 }
