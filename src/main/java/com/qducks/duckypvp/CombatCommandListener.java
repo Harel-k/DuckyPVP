@@ -1,10 +1,12 @@
 package com.qducks.duckypvp;
 
 import org.bukkit.Location;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
@@ -18,6 +20,7 @@ public final class CombatCommandListener implements Listener {
     private final ArenaManager arena;
     private final CombatManager combat;
     private final Map<UUID, Location> lastArenaPosition = new HashMap<>();
+    private final Map<UUID, EntityDamageEvent> lastDamageSeen = new HashMap<>();
     private final Set<UUID> insideLastTick = new HashSet<>();
 
     public CombatCommandListener(DuckyPVP plugin, ArenaManager arena, CombatManager combat) {
@@ -45,8 +48,11 @@ public final class CombatCommandListener implements Listener {
                 combat.handleDeath(player);
                 insideLastTick.remove(uuid);
                 lastArenaPosition.remove(uuid);
+                lastDamageSeen.remove(uuid);
                 continue;
             }
+
+            checkNewPlayerDamage(player);
 
             boolean inside = arena.isInArena(player.getLocation());
             boolean wasInside = insideLastTick.contains(uuid);
@@ -74,5 +80,20 @@ public final class CombatCommandListener implements Listener {
 
         insideLastTick.removeIf(uuid -> !online.contains(uuid));
         lastArenaPosition.keySet().removeIf(uuid -> !online.contains(uuid));
+        lastDamageSeen.keySet().removeIf(uuid -> !online.contains(uuid));
+    }
+
+    private void checkNewPlayerDamage(Player victim) {
+        EntityDamageEvent damage = victim.getLastDamageCause();
+        if (damage == null || lastDamageSeen.get(victim.getUniqueId()) == damage) {
+            return;
+        }
+        lastDamageSeen.put(victim.getUniqueId(), damage);
+
+        Entity causingEntity = damage.getDamageSource().getCausingEntity();
+        if (causingEntity instanceof Player attacker
+                && !attacker.getUniqueId().equals(victim.getUniqueId())) {
+            combat.tagPvp(attacker, victim);
+        }
     }
 }
