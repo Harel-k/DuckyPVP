@@ -1,0 +1,51 @@
+name: Release DuckyPVP
+
+on:
+  push:
+    branches:
+      - release-v0.1.0
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.14.3'
+
+      - name: Build
+        run: gradle clean build --stacktrace
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v0.1.0
+          name: DuckyPVP v0.1.0
+          target_commitish: ${{ github.sha }}
+          body: |
+            Initial DuckyPVP release for QDucks SMP.
+
+            - Paper 1.21.11 / Java 21
+            - WorldGuard-backed sand PvP arena detection
+            - Random kit rotation every 15 minutes
+            - Gives the active kit when players enter the arena
+            - Preserves and restores survival inventories
+            - Resets player-caused arena block/explosion changes
+            - Cleans temporary PvP entities on reset
+            - Excludes the safe `spawn` region from arena kit handling
+          files: build/libs/DuckyPVP-0.1.0.jar
+          fail_on_unmatched_files: true
