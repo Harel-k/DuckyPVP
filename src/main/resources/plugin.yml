@@ -9,11 +9,18 @@ depend: [WorldGuard]
 commands:
   duckypvp:
     description: DuckyPVP administration
-    usage: /duckypvp <status|reset|reroll|reload>
+    usage: /duckypvp <status|forcereset|forcekit|queuekit|clearqueue|forcerandom|reload>
     aliases: [dpvp]
     permission: duckypvp.admin
+  votekit:
+    description: Vote for the next DuckyPVP kit
+    usage: /votekit
+    permission: duckypvp.vote
 
 permissions:
+  duckypvp.vote:
+    description: Vote for the next PvP arena kit
+    default: true
   duckypvp.admin:
     description: Manage the DuckyPVP arena
     default: op
