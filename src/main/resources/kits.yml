@@ -1,0 +1,173 @@
+kits:
+  warrior:
+    display-name: "&cWarrior"
+    items:
+      sword:
+        slot: 0
+        material: NETHERITE_SWORD
+        enchantments:
+          sharpness: 5
+          unbreaking: 3
+      golden_apples:
+        slot: 1
+        material: GOLDEN_APPLE
+        amount: 8
+      pearls:
+        slot: 2
+        material: ENDER_PEARL
+        amount: 8
+      helmet:
+        slot: helmet
+        material: DIAMOND_HELMET
+        enchantments:
+          protection: 4
+          unbreaking: 3
+      chestplate:
+        slot: chestplate
+        material: DIAMOND_CHESTPLATE
+        enchantments:
+          protection: 4
+          unbreaking: 3
+      leggings:
+        slot: leggings
+        material: DIAMOND_LEGGINGS
+        enchantments:
+          protection: 4
+          unbreaking: 3
+      boots:
+        slot: boots
+        material: DIAMOND_BOOTS
+        enchantments:
+          protection: 4
+          feather_falling: 4
+          unbreaking: 3
+
+  archer:
+    display-name: "&aArcher"
+    items:
+      sword:
+        slot: 0
+        material: DIAMOND_SWORD
+        enchantments:
+          sharpness: 4
+      bow:
+        slot: 1
+        material: BOW
+        enchantments:
+          power: 5
+          punch: 2
+          infinity: 1
+      arrow:
+        slot: 8
+        material: ARROW
+        amount: 1
+      golden_apples:
+        slot: 2
+        material: GOLDEN_APPLE
+        amount: 6
+      helmet:
+        slot: helmet
+        material: DIAMOND_HELMET
+        enchantments:
+          protection: 4
+      chestplate:
+        slot: chestplate
+        material: DIAMOND_CHESTPLATE
+        enchantments:
+          protection: 4
+      leggings:
+        slot: leggings
+        material: DIAMOND_LEGGINGS
+        enchantments:
+          protection: 4
+      boots:
+        slot: boots
+        material: DIAMOND_BOOTS
+        enchantments:
+          protection: 4
+          feather_falling: 4
+
+  crystal:
+    display-name: "&dCrystal"
+    items:
+      sword:
+        slot: 0
+        material: NETHERITE_SWORD
+        enchantments:
+          sharpness: 5
+      obsidian:
+        slot: 1
+        material: OBSIDIAN
+        amount: 64
+      crystals:
+        slot: 2
+        material: END_CRYSTAL
+        amount: 32
+      golden_apples:
+        slot: 3
+        material: GOLDEN_APPLE
+        amount: 16
+      totem:
+        slot: offhand
+        material: TOTEM_OF_UNDYING
+      helmet:
+        slot: helmet
+        material: NETHERITE_HELMET
+        enchantments:
+          protection: 4
+      chestplate:
+        slot: chestplate
+        material: NETHERITE_CHESTPLATE
+        enchantments:
+          protection: 4
+      leggings:
+        slot: leggings
+        material: NETHERITE_LEGGINGS
+        enchantments:
+          protection: 4
+      boots:
+        slot: boots
+        material: NETHERITE_BOOTS
+        enchantments:
+          protection: 4
+          feather_falling: 4
+
+  mace:
+    display-name: "&6Mace"
+    items:
+      mace:
+        slot: 0
+        material: MACE
+        enchantments:
+          density: 5
+          wind_burst: 1
+          unbreaking: 3
+      wind_charges:
+        slot: 1
+        material: WIND_CHARGE
+        amount: 32
+      golden_apples:
+        slot: 2
+        material: GOLDEN_APPLE
+        amount: 8
+      helmet:
+        slot: helmet
+        material: DIAMOND_HELMET
+        enchantments:
+          protection: 4
+      chestplate:
+        slot: chestplate
+        material: DIAMOND_CHESTPLATE
+        enchantments:
+          protection: 4
+      leggings:
+        slot: leggings
+        material: DIAMOND_LEGGINGS
+        enchantments:
+          protection: 4
+      boots:
+        slot: boots
+        material: DIAMOND_BOOTS
+        enchantments:
+          protection: 4
+          feather_falling: 4
