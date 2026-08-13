@@ -1,173 +1,209 @@
 kits:
   warrior:
     display-name: "&cWarrior"
+    icon: NETHERITE_SWORD
+    description: ["Strong all-round melee kit", "Netherite sword + gapples + pearls"]
     items:
-      sword:
-        slot: 0
-        material: NETHERITE_SWORD
-        enchantments:
-          sharpness: 5
-          unbreaking: 3
-      golden_apples:
-        slot: 1
-        material: GOLDEN_APPLE
-        amount: 8
-      pearls:
-        slot: 2
-        material: ENDER_PEARL
-        amount: 8
-      helmet:
-        slot: helmet
-        material: DIAMOND_HELMET
-        enchantments:
-          protection: 4
-          unbreaking: 3
-      chestplate:
-        slot: chestplate
-        material: DIAMOND_CHESTPLATE
-        enchantments:
-          protection: 4
-          unbreaking: 3
-      leggings:
-        slot: leggings
-        material: DIAMOND_LEGGINGS
-        enchantments:
-          protection: 4
-          unbreaking: 3
-      boots:
-        slot: boots
-        material: DIAMOND_BOOTS
-        enchantments:
-          protection: 4
-          feather_falling: 4
-          unbreaking: 3
+      weapon: {slot: 0, material: NETHERITE_SWORD, enchantments: {sharpness: 5, unbreaking: 3}}
+      gaps: {slot: 1, material: GOLDEN_APPLE, amount: 8}
+      pearls: {slot: 2, material: ENDER_PEARL, amount: 8}
+      helmet: {slot: helmet, material: DIAMOND_HELMET, enchantments: {protection: 4, unbreaking: 3}}
+      chest: {slot: chestplate, material: DIAMOND_CHESTPLATE, enchantments: {protection: 4, unbreaking: 3}}
+      legs: {slot: leggings, material: DIAMOND_LEGGINGS, enchantments: {protection: 4, unbreaking: 3}}
+      boots: {slot: boots, material: DIAMOND_BOOTS, enchantments: {protection: 4, feather_falling: 4, unbreaking: 3}}
 
   archer:
     display-name: "&aArcher"
+    icon: BOW
+    description: ["Long-range pressure kit", "Power V bow with backup sword"]
     items:
-      sword:
-        slot: 0
-        material: DIAMOND_SWORD
-        enchantments:
-          sharpness: 4
-      bow:
-        slot: 1
-        material: BOW
-        enchantments:
-          power: 5
-          punch: 2
-          infinity: 1
-      arrow:
-        slot: 8
-        material: ARROW
-        amount: 1
-      golden_apples:
-        slot: 2
-        material: GOLDEN_APPLE
-        amount: 6
-      helmet:
-        slot: helmet
-        material: DIAMOND_HELMET
-        enchantments:
-          protection: 4
-      chestplate:
-        slot: chestplate
-        material: DIAMOND_CHESTPLATE
-        enchantments:
-          protection: 4
-      leggings:
-        slot: leggings
-        material: DIAMOND_LEGGINGS
-        enchantments:
-          protection: 4
-      boots:
-        slot: boots
-        material: DIAMOND_BOOTS
-        enchantments:
-          protection: 4
-          feather_falling: 4
+      sword: {slot: 0, material: DIAMOND_SWORD, enchantments: {sharpness: 4}}
+      bow: {slot: 1, material: BOW, enchantments: {power: 5, punch: 2, infinity: 1}}
+      arrow: {slot: 8, material: ARROW, amount: 1}
+      gaps: {slot: 2, material: GOLDEN_APPLE, amount: 6}
+      helmet: {slot: helmet, material: DIAMOND_HELMET, enchantments: {protection: 4}}
+      chest: {slot: chestplate, material: DIAMOND_CHESTPLATE, enchantments: {protection: 4}}
+      legs: {slot: leggings, material: DIAMOND_LEGGINGS, enchantments: {protection: 4}}
+      boots: {slot: boots, material: DIAMOND_BOOTS, enchantments: {protection: 4, feather_falling: 4}}
 
   crystal:
     display-name: "&dCrystal"
+    icon: END_CRYSTAL
+    description: ["Crystal PvP loadout", "Obsidian, crystals and a totem"]
     items:
-      sword:
-        slot: 0
-        material: NETHERITE_SWORD
-        enchantments:
-          sharpness: 5
-      obsidian:
-        slot: 1
-        material: OBSIDIAN
-        amount: 64
-      crystals:
-        slot: 2
-        material: END_CRYSTAL
-        amount: 32
-      golden_apples:
-        slot: 3
-        material: GOLDEN_APPLE
-        amount: 16
-      totem:
-        slot: offhand
-        material: TOTEM_OF_UNDYING
-      helmet:
-        slot: helmet
-        material: NETHERITE_HELMET
-        enchantments:
-          protection: 4
-      chestplate:
-        slot: chestplate
-        material: NETHERITE_CHESTPLATE
-        enchantments:
-          protection: 4
-      leggings:
-        slot: leggings
-        material: NETHERITE_LEGGINGS
-        enchantments:
-          protection: 4
-      boots:
-        slot: boots
-        material: NETHERITE_BOOTS
-        enchantments:
-          protection: 4
-          feather_falling: 4
+      sword: {slot: 0, material: NETHERITE_SWORD, enchantments: {sharpness: 5}}
+      obsidian: {slot: 1, material: OBSIDIAN, amount: 64}
+      crystals: {slot: 2, material: END_CRYSTAL, amount: 32}
+      gaps: {slot: 3, material: GOLDEN_APPLE, amount: 16}
+      totem: {slot: offhand, material: TOTEM_OF_UNDYING}
+      helmet: {slot: helmet, material: NETHERITE_HELMET, enchantments: {protection: 4}}
+      chest: {slot: chestplate, material: NETHERITE_CHESTPLATE, enchantments: {protection: 4}}
+      legs: {slot: leggings, material: NETHERITE_LEGGINGS, enchantments: {protection: 4}}
+      boots: {slot: boots, material: NETHERITE_BOOTS, enchantments: {protection: 4, feather_falling: 4}}
 
   mace:
     display-name: "&6Mace"
+    icon: MACE
+    description: ["Smash-focused movement kit", "Mace + wind charges"]
     items:
-      mace:
-        slot: 0
-        material: MACE
-        enchantments:
-          density: 5
-          wind_burst: 1
-          unbreaking: 3
-      wind_charges:
-        slot: 1
-        material: WIND_CHARGE
-        amount: 32
-      golden_apples:
-        slot: 2
-        material: GOLDEN_APPLE
-        amount: 8
-      helmet:
-        slot: helmet
-        material: DIAMOND_HELMET
-        enchantments:
-          protection: 4
-      chestplate:
-        slot: chestplate
-        material: DIAMOND_CHESTPLATE
-        enchantments:
-          protection: 4
-      leggings:
-        slot: leggings
-        material: DIAMOND_LEGGINGS
-        enchantments:
-          protection: 4
-      boots:
-        slot: boots
-        material: DIAMOND_BOOTS
-        enchantments:
-          protection: 4
-          feather_falling: 4
+      mace: {slot: 0, material: MACE, enchantments: {density: 5, wind_burst: 1, unbreaking: 3}}
+      charges: {slot: 1, material: WIND_CHARGE, amount: 32}
+      gaps: {slot: 2, material: GOLDEN_APPLE, amount: 8}
+      helmet: {slot: helmet, material: DIAMOND_HELMET, enchantments: {protection: 4}}
+      chest: {slot: chestplate, material: DIAMOND_CHESTPLATE, enchantments: {protection: 4}}
+      legs: {slot: leggings, material: DIAMOND_LEGGINGS, enchantments: {protection: 4}}
+      boots: {slot: boots, material: DIAMOND_BOOTS, enchantments: {protection: 4, feather_falling: 4}}
+
+  tank:
+    display-name: "&8Tank"
+    icon: NETHERITE_CHESTPLATE
+    description: ["Heavy defense and shield", "Slower style, hard to kill"]
+    items:
+      axe: {slot: 0, material: NETHERITE_AXE, enchantments: {sharpness: 5}}
+      gaps: {slot: 1, material: GOLDEN_APPLE, amount: 12}
+      shield: {slot: offhand, material: SHIELD, enchantments: {unbreaking: 3}}
+      helmet: {slot: helmet, material: NETHERITE_HELMET, enchantments: {protection: 4}}
+      chest: {slot: chestplate, material: NETHERITE_CHESTPLATE, enchantments: {protection: 4}}
+      legs: {slot: leggings, material: NETHERITE_LEGGINGS, enchantments: {protection: 4}}
+      boots: {slot: boots, material: NETHERITE_BOOTS, enchantments: {protection: 4}}
+
+  assassin:
+    display-name: "&5Assassin"
+    icon: ENDER_PEARL
+    description: ["Fast aggressive melee kit", "Pearls, sword and lighter armor"]
+    items:
+      sword: {slot: 0, material: NETHERITE_SWORD, enchantments: {sharpness: 5, fire_aspect: 2}}
+      pearls: {slot: 1, material: ENDER_PEARL, amount: 16}
+      gaps: {slot: 2, material: GOLDEN_APPLE, amount: 5}
+      helmet: {slot: helmet, material: IRON_HELMET, enchantments: {protection: 4}}
+      chest: {slot: chestplate, material: DIAMOND_CHESTPLATE, enchantments: {protection: 3}}
+      legs: {slot: leggings, material: IRON_LEGGINGS, enchantments: {protection: 4}}
+      boots: {slot: boots, material: DIAMOND_BOOTS, enchantments: {feather_falling: 4}}
+
+  axe:
+    display-name: "&4Axe Duelist"
+    icon: NETHERITE_AXE
+    description: ["Shield-breaking melee kit", "Netherite axe + shield"]
+    items:
+      axe: {slot: 0, material: NETHERITE_AXE, enchantments: {sharpness: 5}}
+      sword: {slot: 1, material: DIAMOND_SWORD, enchantments: {sharpness: 4}}
+      gaps: {slot: 2, material: GOLDEN_APPLE, amount: 7}
+      shield: {slot: offhand, material: SHIELD}
+      helmet: {slot: helmet, material: DIAMOND_HELMET, enchantments: {protection: 4}}
+      chest: {slot: chestplate, material: DIAMOND_CHESTPLATE, enchantments: {protection: 4}}
+      legs: {slot: leggings, material: DIAMOND_LEGGINGS, enchantments: {protection: 4}}
+      boots: {slot: boots, material: DIAMOND_BOOTS, enchantments: {protection: 4}}
+
+  trident:
+    display-name: "&3Trident"
+    icon: TRIDENT
+    description: ["Ranged trident combat", "Loyalty trident + sword"]
+    items:
+      trident: {slot: 0, material: TRIDENT, enchantments: {loyalty: 3, impaling: 5, unbreaking: 3}}
+      sword: {slot: 1, material: DIAMOND_SWORD, enchantments: {sharpness: 4}}
+      gaps: {slot: 2, material: GOLDEN_APPLE, amount: 7}
+      helmet: {slot: helmet, material: DIAMOND_HELMET, enchantments: {protection: 4}}
+      chest: {slot: chestplate, material: DIAMOND_CHESTPLATE, enchantments: {protection: 4}}
+      legs: {slot: leggings, material: DIAMOND_LEGGINGS, enchantments: {protection: 4}}
+      boots: {slot: boots, material: DIAMOND_BOOTS, enchantments: {protection: 4}}
+
+  crossbow:
+    display-name: "&eCrossbow"
+    icon: CROSSBOW
+    description: ["Fast ranged burst kit", "Multishot + Quick Charge"]
+    items:
+      crossbow: {slot: 0, material: CROSSBOW, enchantments: {multishot: 1, quick_charge: 3, unbreaking: 3}}
+      sword: {slot: 1, material: DIAMOND_SWORD, enchantments: {sharpness: 4}}
+      arrows: {slot: 8, material: ARROW, amount: 64}
+      gaps: {slot: 2, material: GOLDEN_APPLE, amount: 6}
+      helmet: {slot: helmet, material: DIAMOND_HELMET, enchantments: {protection: 3}}
+      chest: {slot: chestplate, material: DIAMOND_CHESTPLATE, enchantments: {protection: 3}}
+      legs: {slot: leggings, material: DIAMOND_LEGGINGS, enchantments: {protection: 3}}
+      boots: {slot: boots, material: DIAMOND_BOOTS, enchantments: {protection: 3}}
+
+  spear:
+    display-name: "&bSpear"
+    icon: NETHERITE_SPEAR
+    description: ["1.21.11 spear combat", "Sharp spear with Lunge III"]
+    items:
+      spear: {slot: 0, material: NETHERITE_SPEAR, enchantments: {sharpness: 5, lunge: 3, unbreaking: 3}}
+      gaps: {slot: 1, material: GOLDEN_APPLE, amount: 7}
+      pearls: {slot: 2, material: ENDER_PEARL, amount: 6}
+      helmet: {slot: helmet, material: DIAMOND_HELMET, enchantments: {protection: 4}}
+      chest: {slot: chestplate, material: DIAMOND_CHESTPLATE, enchantments: {protection: 4}}
+      legs: {slot: leggings, material: DIAMOND_LEGGINGS, enchantments: {protection: 4}}
+      boots: {slot: boots, material: DIAMOND_BOOTS, enchantments: {protection: 4}}
+
+  pyro:
+    display-name: "&6Pyro"
+    icon: FLINT_AND_STEEL
+    description: ["Fire-focused chaos kit", "Flame bow, lava and fire sword"]
+    items:
+      sword: {slot: 0, material: DIAMOND_SWORD, enchantments: {sharpness: 4, fire_aspect: 2}}
+      bow: {slot: 1, material: BOW, enchantments: {power: 4, flame: 1, infinity: 1}}
+      arrow: {slot: 8, material: ARROW, amount: 1}
+      lava: {slot: 2, material: LAVA_BUCKET, amount: 1}
+      flint: {slot: 3, material: FLINT_AND_STEEL, enchantments: {unbreaking: 3}}
+      gaps: {slot: 4, material: GOLDEN_APPLE, amount: 5}
+      helmet: {slot: helmet, material: DIAMOND_HELMET, enchantments: {fire_protection: 4}}
+      chest: {slot: chestplate, material: DIAMOND_CHESTPLATE, enchantments: {fire_protection: 4}}
+      legs: {slot: leggings, material: DIAMOND_LEGGINGS, enchantments: {fire_protection: 4}}
+      boots: {slot: boots, material: DIAMOND_BOOTS, enchantments: {fire_protection: 4}}
+
+  builder:
+    display-name: "&2Builder"
+    icon: COBBLESTONE
+    description: ["Fortification-heavy kit", "Lots of blocks + solid sword"]
+    items:
+      sword: {slot: 0, material: DIAMOND_SWORD, enchantments: {sharpness: 4}}
+      blocks: {slot: 1, material: COBBLESTONE, amount: 64}
+      planks: {slot: 2, material: OAK_PLANKS, amount: 64}
+      obsidian: {slot: 3, material: OBSIDIAN, amount: 32}
+      gaps: {slot: 4, material: GOLDEN_APPLE, amount: 6}
+      pickaxe: {slot: 5, material: DIAMOND_PICKAXE, enchantments: {efficiency: 5}}
+      helmet: {slot: helmet, material: DIAMOND_HELMET, enchantments: {protection: 3}}
+      chest: {slot: chestplate, material: DIAMOND_CHESTPLATE, enchantments: {protection: 3}}
+      legs: {slot: leggings, material: DIAMOND_LEGGINGS, enchantments: {protection: 3}}
+      boots: {slot: boots, material: DIAMOND_BOOTS, enchantments: {protection: 3}}
+
+  bomber:
+    display-name: "&cBomber"
+    icon: TNT
+    description: ["Explosion-heavy arena kit", "TNT, fire and blast protection"]
+    items:
+      sword: {slot: 0, material: DIAMOND_SWORD, enchantments: {sharpness: 4}}
+      tnt: {slot: 1, material: TNT, amount: 32}
+      flint: {slot: 2, material: FLINT_AND_STEEL}
+      gaps: {slot: 3, material: GOLDEN_APPLE, amount: 6}
+      blocks: {slot: 4, material: OBSIDIAN, amount: 32}
+      helmet: {slot: helmet, material: DIAMOND_HELMET, enchantments: {blast_protection: 4}}
+      chest: {slot: chestplate, material: DIAMOND_CHESTPLATE, enchantments: {blast_protection: 4}}
+      legs: {slot: leggings, material: DIAMOND_LEGGINGS, enchantments: {blast_protection: 4}}
+      boots: {slot: boots, material: DIAMOND_BOOTS, enchantments: {blast_protection: 4}}
+
+  knockback:
+    display-name: "&dKnockback Chaos"
+    icon: STICK
+    description: ["Send everyone flying", "Illegal Knockback V stick + sword"]
+    items:
+      stick: {slot: 0, material: STICK, enchantments: {knockback: 5}}
+      sword: {slot: 1, material: DIAMOND_SWORD, enchantments: {sharpness: 4, knockback: 2}}
+      gaps: {slot: 2, material: GOLDEN_APPLE, amount: 6}
+      helmet: {slot: helmet, material: DIAMOND_HELMET, enchantments: {protection: 4}}
+      chest: {slot: chestplate, material: DIAMOND_CHESTPLATE, enchantments: {protection: 4}}
+      legs: {slot: leggings, material: DIAMOND_LEGGINGS, enchantments: {protection: 4}}
+      boots: {slot: boots, material: DIAMOND_BOOTS, enchantments: {protection: 4, feather_falling: 4}}
+
+  classic:
+    display-name: "&fClassic"
+    icon: DIAMOND_SWORD
+    description: ["Simple old-school PvP", "Sword, bow and iron armor"]
+    items:
+      sword: {slot: 0, material: DIAMOND_SWORD, enchantments: {sharpness: 3}}
+      bow: {slot: 1, material: BOW, enchantments: {power: 3}}
+      arrows: {slot: 8, material: ARROW, amount: 32}
+      gaps: {slot: 2, material: GOLDEN_APPLE, amount: 4}
+      helmet: {slot: helmet, material: IRON_HELMET, enchantments: {protection: 3}}
+      chest: {slot: chestplate, material: IRON_CHESTPLATE, enchantments: {protection: 3}}
+      legs: {slot: leggings, material: IRON_LEGGINGS, enchantments: {protection: 3}}
+      boots: {slot: boots, material: IRON_BOOTS, enchantments: {protection: 3}}
