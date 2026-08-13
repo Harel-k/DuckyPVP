@@ -2,7 +2,7 @@ name: DuckyPVP
 version: '${version}'
 main: com.qducks.duckypvp.DuckyPVP
 api-version: '1.21.11'
-description: QDucks SMP PvP arena kits and reset controller
+description: QDucks SMP PvP arena kits, voting, reset, and combat controller
 authors: [QDucks]
 depend: [WorldGuard]
 
@@ -23,4 +23,7 @@ permissions:
     default: true
   duckypvp.admin:
     description: Manage the DuckyPVP arena
+    default: op
+  duckypvp.combat.bypass:
+    description: Bypass DuckyPVP arena combat locking
     default: op
