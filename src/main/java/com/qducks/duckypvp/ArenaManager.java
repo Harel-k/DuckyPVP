@@ -29,6 +29,7 @@ public final class ArenaManager {
     private final Map<BlockKey, BlockData> originalBlocks = new HashMap<>();
     private final Set<UUID> playersInside = new HashSet<>();
     private final Set<EntityType> temporaryEntityTypes = new HashSet<>();
+    private final Set<String> excludedRegionNames = new HashSet<>();
 
     private String worldName;
     private String regionName;
@@ -69,6 +70,13 @@ public final class ArenaManager {
         long seconds = Math.max(1L, plugin.getConfig().getLong("arena.reset-interval-seconds", 900L));
         resetIntervalTicks = seconds * 20L;
 
+        excludedRegionNames.clear();
+        for (String excluded : plugin.getConfig().getStringList("arena.excluded-regions")) {
+            if (!excluded.isBlank()) {
+                excludedRegionNames.add(excluded.toLowerCase(Locale.ROOT));
+            }
+        }
+
         temporaryEntityTypes.clear();
         for (String raw : plugin.getConfig().getStringList("reset.temporary-entities")) {
             try {
@@ -87,19 +95,27 @@ public final class ArenaManager {
             return false;
         }
 
-        ProtectedRegion region = getRegion(location.getWorld());
-        if (region == null) {
-            return false;
-        }
-        return region.contains(BlockVector3.at(location.getBlockX(), location.getBlockY(), location.getBlockZ()));
-    }
-
-    private ProtectedRegion getRegion(World world) {
         RegionManager manager = WorldGuard.getInstance()
                 .getPlatform()
                 .getRegionContainer()
-                .get(BukkitAdapter.adapt(world));
-        return manager == null ? null : manager.getRegion(regionName);
+                .get(BukkitAdapter.adapt(location.getWorld()));
+        if (manager == null) {
+            return false;
+        }
+
+        BlockVector3 point = BlockVector3.at(location.getBlockX(), location.getBlockY(), location.getBlockZ());
+        ProtectedRegion arenaRegion = manager.getRegion(regionName);
+        if (arenaRegion == null || !arenaRegion.contains(point)) {
+            return false;
+        }
+
+        for (String excludedName : excludedRegionNames) {
+            ProtectedRegion excluded = manager.getRegion(excludedName);
+            if (excluded != null && excluded.contains(point)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public void syncPlayer(Player player) {
