@@ -3,7 +3,7 @@ name: Release DuckyPVP
 on:
   push:
     branches:
-      - release-v0.1.0
+      - release-v0.2.0
 
 permissions:
   contents: write
@@ -33,19 +33,21 @@ jobs:
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v0.1.0
-          name: DuckyPVP v0.1.0
+          tag_name: v0.2.0
+          name: DuckyPVP v0.2.0
           target_commitish: ${{ github.sha }}
           body: |
-            Initial DuckyPVP release for QDucks SMP.
+            DuckyPVP v0.2.0 for QDucks SMP.
 
-            - Paper 1.21.11 / Java 21
-            - WorldGuard-backed sand PvP arena detection
-            - Random kit rotation every 15 minutes
-            - Gives the active kit when players enter the arena
-            - Preserves and restores survival inventories
-            - Resets player-caused arena block/explosion changes
-            - Cleans temporary PvP entities on reset
-            - Excludes the safe `spawn` region from arena kit handling
-          files: build/libs/DuckyPVP-0.1.0.jar
+            - Custom arena welcome title with active kit and reset countdown
+            - Bossbar visible in the arena with current kit and live MM:SS reset timer
+            - /votekit GUI with player voting for the next timed kit
+            - Admin queued kit overrides votes for the next natural reset
+            - /duckypvp queuekit <kit>
+            - /duckypvp forcekit <kit> changes kit immediately without resetting the timer
+            - /duckypvp forcereset resets arena damage immediately without changing timer or kit
+            - /duckypvp clearqueue and /duckypvp forcerandom helpers
+            - Expanded roster with 15 distinct PvP kits
+            - Existing inventory backup, WorldGuard region detection, and 15-minute arena restoration retained
+          files: build/libs/DuckyPVP-0.2.0.jar
           fail_on_unmatched_files: true
