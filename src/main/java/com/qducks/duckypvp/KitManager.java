@@ -10,6 +10,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.potion.PotionType;
 
 import java.io.File;
 import java.io.IOException;
@@ -183,7 +185,7 @@ public final class KitManager {
                     plugin.getLogger().warning("Invalid item '" + itemId + "' in kit '" + activeKit + "'.");
                     continue;
                 }
-                putInSlot(inventory, section.getString("slot", "0"), item);
+                putConfiguredItem(inventory, section, item);
             }
         }
 
@@ -210,6 +212,18 @@ public final class KitManager {
 
         if (meta != null && section.isString("name")) {
             meta.setDisplayName(color(section.getString("name", "")));
+        }
+
+        if (meta instanceof PotionMeta potionMeta && section.isString("potion-type")) {
+            String rawPotionType = section.getString("potion-type", "").trim().toUpperCase(Locale.ROOT);
+            try {
+                potionMeta.setBasePotionType(PotionType.valueOf(rawPotionType));
+            } catch (IllegalArgumentException ex) {
+                plugin.getLogger().warning("Unknown potion type '" + rawPotionType + "' in kit '" + activeKit + "'.");
+            }
+        }
+
+        if (meta != null) {
             item.setItemMeta(meta);
         }
 
@@ -227,6 +241,26 @@ public final class KitManager {
             }
         }
         return item;
+    }
+
+    private void putConfiguredItem(PlayerInventory inventory, ConfigurationSection section, ItemStack item) {
+        List<String> slots = section.getStringList("slots");
+        if (!slots.isEmpty()) {
+            for (String slot : slots) {
+                putInSlot(inventory, slot, item.clone());
+            }
+            return;
+        }
+
+        List<Integer> integerSlots = section.getIntegerList("slots");
+        if (!integerSlots.isEmpty()) {
+            for (Integer slot : integerSlots) {
+                putInSlot(inventory, String.valueOf(slot), item.clone());
+            }
+            return;
+        }
+
+        putInSlot(inventory, section.getString("slot", "0"), item);
     }
 
     private void putInSlot(PlayerInventory inventory, String rawSlot, ItemStack item) {
