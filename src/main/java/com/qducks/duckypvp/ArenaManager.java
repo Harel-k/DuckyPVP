@@ -214,11 +214,25 @@ public final class ArenaManager {
     }
 
     private void leavePlayer(Player player) {
-        playersInside.remove(player.getUniqueId());
+        UUID uuid = player.getUniqueId();
+        playersInside.remove(uuid);
         if (bossBar != null) {
             bossBar.removePlayer(player);
         }
-        kitManager.leaveArena(player);
+
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (!player.isOnline()) {
+                return;
+            }
+            if (isInArena(player.getLocation())) {
+                playersInside.add(uuid);
+                if (bossBar != null) {
+                    bossBar.addPlayer(player);
+                }
+                return;
+            }
+            kitManager.leaveArena(player);
+        }, 2L);
     }
 
     public void handleQuit(Player player) {
