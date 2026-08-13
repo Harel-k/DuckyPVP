@@ -9,8 +9,8 @@ arena:
 reset:
   remove-temporary-entities: true
   temporary-entities:
-    - ENDER_CRYSTAL
-    - PRIMED_TNT
+    - END_CRYSTAL
+    - TNT
     - ITEM
     - ARROW
     - SPECTRAL_ARROW
