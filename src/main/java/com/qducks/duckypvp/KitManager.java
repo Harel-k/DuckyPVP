@@ -42,7 +42,7 @@ public final class KitManager {
 
     public void reload() {
         this.kits = YamlConfiguration.loadConfiguration(kitsFile);
-        if (activeKit != null && !getKitIds().contains(activeKit)) {
+        if (activeKit != null && !isValidKit(activeKit)) {
             activeKit = null;
         }
         if (activeKit == null && !getKitIds().isEmpty()) {
@@ -51,22 +51,47 @@ public final class KitManager {
     }
 
     public String rollNextKit() {
+        activeKit = pickRandomKitIdDifferentFromActive();
+        return activeKit;
+    }
+
+    public String pickRandomKitIdDifferentFromActive() {
         List<String> ids = getKitIds();
         if (ids.isEmpty()) {
             throw new IllegalStateException("No kits are configured in kits.yml");
         }
-
         if (ids.size() == 1) {
-            activeKit = ids.getFirst();
-            return activeKit;
+            return ids.getFirst();
         }
 
         String next;
         do {
             next = ids.get(random.nextInt(ids.size()));
-        } while (next.equals(activeKit));
-        activeKit = next;
-        return activeKit;
+        } while (next.equalsIgnoreCase(activeKit));
+        return next;
+    }
+
+    public boolean activateKit(String kitId) {
+        if (!isValidKit(kitId)) {
+            return false;
+        }
+        activeKit = kitId.toLowerCase(Locale.ROOT);
+        return true;
+    }
+
+    public boolean isValidKit(String kitId) {
+        if (kitId == null) {
+            return false;
+        }
+        return kits.isConfigurationSection("kits." + kitId.toLowerCase(Locale.ROOT));
+    }
+
+    public List<String> getKitIds() {
+        ConfigurationSection root = kits.getConfigurationSection("kits");
+        if (root == null) {
+            return List.of();
+        }
+        return new ArrayList<>(root.getKeys(false));
     }
 
     public String getActiveKitId() {
@@ -74,10 +99,29 @@ public final class KitManager {
     }
 
     public String getActiveDisplayName() {
-        if (activeKit == null) {
+        return getDisplayName(activeKit);
+    }
+
+    public String getDisplayName(String kitId) {
+        if (kitId == null || !isValidKit(kitId)) {
             return color("&7None");
         }
-        return color(kits.getString("kits." + activeKit + ".display-name", activeKit));
+        return color(kits.getString("kits." + kitId + ".display-name", kitId));
+    }
+
+    public Material getIconMaterial(String kitId) {
+        if (!isValidKit(kitId)) {
+            return Material.BARRIER;
+        }
+        Material material = Material.matchMaterial(kits.getString("kits." + kitId + ".icon", "CHEST"));
+        return material == null || material.isAir() ? Material.CHEST : material;
+    }
+
+    public List<String> getDescription(String kitId) {
+        if (!isValidKit(kitId)) {
+            return List.of();
+        }
+        return kits.getStringList("kits." + kitId + ".description");
     }
 
     public boolean hasBackup(UUID uuid) {
@@ -114,14 +158,6 @@ public final class KitManager {
                 restoreBackup(player);
             }
         }
-    }
-
-    private List<String> getKitIds() {
-        ConfigurationSection root = kits.getConfigurationSection("kits");
-        if (root == null) {
-            return List.of();
-        }
-        return new ArrayList<>(root.getKeys(false));
     }
 
     private void applyActiveKit(Player player) {
