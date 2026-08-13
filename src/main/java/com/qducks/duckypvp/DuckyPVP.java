@@ -26,7 +26,7 @@ public final class DuckyPVP extends JavaPlugin {
         }
 
         getServer().getPluginManager().registerEvents(new ArenaListener(this, arenaManager, kitManager), this);
-        getServer().getPluginManager().registerEvents(new CombatCommandListener(combatManager), this);
+        getServer().getPluginManager().registerEvents(new CombatCommandListener(this, arenaManager, combatManager), this);
 
         VoteKitMenu voteMenu = new VoteKitMenu(this, kitManager, voteManager);
         getServer().getPluginManager().registerEvents(voteMenu, this);
