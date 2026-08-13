@@ -11,6 +11,9 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -26,6 +29,7 @@ import java.util.UUID;
 public final class ArenaManager {
     private final DuckyPVP plugin;
     private final KitManager kitManager;
+    private final VoteManager voteManager;
     private final Map<BlockKey, BlockData> originalBlocks = new HashMap<>();
     private final Set<UUID> playersInside = new HashSet<>();
     private final Set<EntityType> temporaryEntityTypes = new HashSet<>();
@@ -35,33 +39,50 @@ public final class ArenaManager {
     private String regionName;
     private long resetIntervalTicks;
     private long nextResetAtMillis;
-    private BukkitTask resetTask;
+    private BukkitTask tickTask;
+    private BossBar bossBar;
     private boolean resetting;
 
-    public ArenaManager(DuckyPVP plugin, KitManager kitManager) {
+    public ArenaManager(DuckyPVP plugin, KitManager kitManager, VoteManager voteManager) {
         this.plugin = plugin;
         this.kitManager = kitManager;
+        this.voteManager = voteManager;
         loadSettings();
+        rebuildBossBar();
     }
 
     public void start() {
-        stop();
-        long interval = Math.max(20L, resetIntervalTicks);
-        nextResetAtMillis = System.currentTimeMillis() + interval * 50L;
-        resetTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> resetArena(true), interval, interval);
+        stopTaskOnly();
+        nextResetAtMillis = System.currentTimeMillis() + resetIntervalTicks * 50L;
+        tickTask = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 20L, 20L);
+        updateBossBar();
     }
 
     public void stop() {
-        if (resetTask != null) {
-            resetTask.cancel();
-            resetTask = null;
+        stopTaskOnly();
+        if (bossBar != null) {
+            bossBar.removeAll();
+        }
+    }
+
+    private void stopTaskOnly() {
+        if (tickTask != null) {
+            tickTask.cancel();
+            tickTask = null;
         }
     }
 
     public void reload() {
-        stop();
+        stopTaskOnly();
+        if (bossBar != null) {
+            bossBar.removeAll();
+        }
         loadSettings();
+        rebuildBossBar();
         start();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            syncPlayer(player);
+        }
     }
 
     private void loadSettings() {
@@ -85,6 +106,35 @@ public final class ArenaManager {
                 plugin.getLogger().warning("Unknown temporary entity type in config.yml: " + raw);
             }
         }
+    }
+
+    private void rebuildBossBar() {
+        if (!plugin.getConfig().getBoolean("ui.bossbar.enabled", true)) {
+            bossBar = null;
+            return;
+        }
+
+        BarColor barColor;
+        BarStyle barStyle;
+        try {
+            barColor = BarColor.valueOf(plugin.getConfig().getString("ui.bossbar.color", "YELLOW").toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            barColor = BarColor.YELLOW;
+        }
+        try {
+            barStyle = BarStyle.valueOf(plugin.getConfig().getString("ui.bossbar.style", "SOLID").toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            barStyle = BarStyle.SOLID;
+        }
+        bossBar = Bukkit.createBossBar("DuckyPVP", barColor, barStyle);
+    }
+
+    private void tick() {
+        long now = System.currentTimeMillis();
+        if (now >= nextResetAtMillis) {
+            naturalReset();
+        }
+        updateBossBar();
     }
 
     public boolean isInArena(Location location) {
@@ -123,14 +173,16 @@ public final class ArenaManager {
         boolean wasInside = playersInside.contains(player.getUniqueId());
 
         if (nowInside && !wasInside) {
-            playersInside.add(player.getUniqueId());
-            kitManager.enterArena(player);
-            sendEnterMessage(player);
+            enterPlayer(player);
         } else if (!nowInside && wasInside) {
-            playersInside.remove(player.getUniqueId());
-            kitManager.leaveArena(player);
+            leavePlayer(player);
         } else if (!nowInside && kitManager.hasBackup(player.getUniqueId())) {
+            if (bossBar != null) {
+                bossBar.removePlayer(player);
+            }
             kitManager.restoreStaleBackup(player);
+        } else if (nowInside && bossBar != null) {
+            bossBar.addPlayer(player);
         }
     }
 
@@ -146,17 +198,34 @@ public final class ArenaManager {
         }
 
         if (nowInside) {
-            playersInside.add(player.getUniqueId());
-            kitManager.enterArena(player);
-            sendEnterMessage(player);
+            enterPlayer(player);
         } else {
-            playersInside.remove(player.getUniqueId());
-            kitManager.leaveArena(player);
+            leavePlayer(player);
         }
+    }
+
+    private void enterPlayer(Player player) {
+        playersInside.add(player.getUniqueId());
+        kitManager.enterArena(player);
+        if (bossBar != null) {
+            bossBar.addPlayer(player);
+        }
+        sendEntryTitle(player);
+    }
+
+    private void leavePlayer(Player player) {
+        playersInside.remove(player.getUniqueId());
+        if (bossBar != null) {
+            bossBar.removePlayer(player);
+        }
+        kitManager.leaveArena(player);
     }
 
     public void handleQuit(Player player) {
         playersInside.remove(player.getUniqueId());
+        if (bossBar != null) {
+            bossBar.removePlayer(player);
+        }
         if (kitManager.hasBackup(player.getUniqueId())) {
             kitManager.leaveArena(player);
         }
@@ -174,7 +243,39 @@ public final class ArenaManager {
         originalBlocks.putIfAbsent(key, originalData.clone());
     }
 
-    public void resetArena(boolean rerollKit) {
+    public void naturalReset() {
+        performArenaCleanup();
+
+        String nextKit = voteManager.resolveNextKit();
+        kitManager.activateKit(nextKit);
+        rekitArenaPlayers(true);
+
+        nextResetAtMillis = System.currentTimeMillis() + resetIntervalTicks * 50L;
+        broadcastReset();
+        updateBossBar();
+    }
+
+    public void forceReset() {
+        performArenaCleanup();
+        updateBossBar();
+    }
+
+    public boolean forceKit(String kitId) {
+        if (!kitManager.activateKit(kitId)) {
+            return false;
+        }
+        rekitArenaPlayers(true);
+        updateBossBar();
+        return true;
+    }
+
+    public String forceRandomKit() {
+        String kitId = kitManager.pickRandomKitIdDifferentFromActive();
+        forceKit(kitId);
+        return kitId;
+    }
+
+    private void performArenaCleanup() {
         resetting = true;
         try {
             for (Map.Entry<BlockKey, BlockData> entry : originalBlocks.entrySet()) {
@@ -188,39 +289,27 @@ public final class ArenaManager {
             if (plugin.getConfig().getBoolean("reset.remove-temporary-entities", true)) {
                 removeTemporaryEntities();
             }
-
-            if (rerollKit) {
-                kitManager.rollNextKit();
-            }
-
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                if (isInArena(player.getLocation())) {
-                    playersInside.add(player.getUniqueId());
-                    kitManager.rekit(player);
-                } else if (playersInside.remove(player.getUniqueId())) {
-                    kitManager.leaveArena(player);
-                }
-            }
-
-            nextResetAtMillis = System.currentTimeMillis() + resetIntervalTicks * 50L;
-            if (plugin.getConfig().getBoolean("arena.broadcast-reset", true)) {
-                String message = plugin.getConfig().getString(
-                        "arena.reset-message",
-                        "&6&lDUCKY PVP &8» &eArena reset! New kit: &f%kit%"
-                );
-                Bukkit.broadcastMessage(color(message.replace("%kit%", kitManager.getActiveDisplayName())));
-            }
         } finally {
             resetting = false;
         }
     }
 
-    public void rerollKit() {
-        kitManager.rollNextKit();
+    private void rekitArenaPlayers(boolean showTitle) {
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (isInArena(player.getLocation())) {
                 playersInside.add(player.getUniqueId());
                 kitManager.rekit(player);
+                if (bossBar != null) {
+                    bossBar.addPlayer(player);
+                }
+                if (showTitle) {
+                    sendKitChangedTitle(player);
+                }
+            } else if (playersInside.remove(player.getUniqueId())) {
+                if (bossBar != null) {
+                    bossBar.removePlayer(player);
+                }
+                kitManager.leaveArena(player);
             }
         }
     }
@@ -241,12 +330,65 @@ public final class ArenaManager {
         }
     }
 
-    private void sendEnterMessage(Player player) {
+    private void sendEntryTitle(Player player) {
+        if (!plugin.getConfig().getBoolean("ui.entry-title.enabled", true)) {
+            return;
+        }
+        String title = placeholders(plugin.getConfig().getString("ui.entry-title.title", "&6&lDUCKY PVP"));
+        String subtitle = placeholders(plugin.getConfig().getString(
+                "ui.entry-title.subtitle",
+                "&7Kit: &f%kit% &8• &7Reset in &f%time%"
+        ));
+        int fadeIn = plugin.getConfig().getInt("ui.entry-title.fade-in", 10);
+        int stay = plugin.getConfig().getInt("ui.entry-title.stay", 50);
+        int fadeOut = plugin.getConfig().getInt("ui.entry-title.fade-out", 10);
+        player.sendTitle(color(title), color(subtitle), fadeIn, stay, fadeOut);
+    }
+
+    private void sendKitChangedTitle(Player player) {
+        if (!plugin.getConfig().getBoolean("ui.kit-change-title.enabled", true)) {
+            return;
+        }
+        String title = placeholders(plugin.getConfig().getString("ui.kit-change-title.title", "&e&lNEW KIT"));
+        String subtitle = placeholders(plugin.getConfig().getString("ui.kit-change-title.subtitle", "&f%kit%"));
+        player.sendTitle(color(title), color(subtitle), 5, 35, 10);
+    }
+
+    private void updateBossBar() {
+        if (bossBar == null) {
+            return;
+        }
+
+        long remainingMillis = Math.max(0L, nextResetAtMillis - System.currentTimeMillis());
+        long intervalMillis = Math.max(1000L, resetIntervalTicks * 50L);
+        double progress = Math.max(0.0, Math.min(1.0, remainingMillis / (double) intervalMillis));
+        bossBar.setProgress(progress);
+        bossBar.setTitle(color(placeholders(plugin.getConfig().getString(
+                "ui.bossbar.title",
+                "&6Kit: &f%kit% &8• &eReset in &f%time%"
+        ))));
+    }
+
+    private void broadcastReset() {
+        if (!plugin.getConfig().getBoolean("arena.broadcast-reset", true)) {
+            return;
+        }
         String message = plugin.getConfig().getString(
-                "arena.enter-message",
-                "&6&lDUCKY PVP &8» &7Current kit: &f%kit%"
+                "arena.reset-message",
+                "&6&lDUCKY PVP &8» &eArena reset! New kit: &f%kit%"
         );
-        player.sendMessage(color(message.replace("%kit%", kitManager.getActiveDisplayName())));
+        Bukkit.broadcastMessage(color(placeholders(message)));
+    }
+
+    private String placeholders(String input) {
+        String queued = voteManager.getQueuedKit();
+        String leading = voteManager.getLeadingKit();
+        return (input == null ? "" : input)
+                .replace("%kit%", kitManager.getActiveDisplayName())
+                .replace("%time%", formatTime(getSecondsUntilReset()))
+                .replace("%votes%", String.valueOf(voteManager.getTotalVotes()))
+                .replace("%queued%", queued == null ? "None" : kitManager.getDisplayName(queued))
+                .replace("%leading%", leading == null ? "None" : kitManager.getDisplayName(leading));
     }
 
     public String getRegionName() {
@@ -263,6 +405,12 @@ public final class ArenaManager {
 
     public long getSecondsUntilReset() {
         return Math.max(0L, (nextResetAtMillis - System.currentTimeMillis() + 999L) / 1000L);
+    }
+
+    public static String formatTime(long totalSeconds) {
+        long minutes = totalSeconds / 60L;
+        long seconds = totalSeconds % 60L;
+        return String.format("%02d:%02d", minutes, seconds);
     }
 
     private static String color(String input) {
