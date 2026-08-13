@@ -1,0 +1,19 @@
+name: DuckyPVP
+version: '${version}'
+main: com.qducks.duckypvp.DuckyPVP
+api-version: '1.21.11'
+description: QDucks SMP PvP arena kits and reset controller
+authors: [QDucks]
+depend: [WorldGuard]
+
+commands:
+  duckypvp:
+    description: DuckyPVP administration
+    usage: /duckypvp <status|reset|reroll|reload>
+    aliases: [dpvp]
+    permission: duckypvp.admin
+
+permissions:
+  duckypvp.admin:
+    description: Manage the DuckyPVP arena
+    default: op
