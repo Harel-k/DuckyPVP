@@ -33,7 +33,6 @@ jobs:
           path = Path('src/main/java/com/qducks/duckypvp/ArenaManager.java')
           text = path.read_text(encoding='utf-8')
 
-          # Keep natural resets aligned to real wall-clock interval boundaries.
           old_timer = 'nextResetAtMillis = System.currentTimeMillis() + resetIntervalTicks * 50L;'
           new_timer = 'nextResetAtMillis = ((System.currentTimeMillis() / Math.max(1000L, resetIntervalTicks * 50L)) + 1L) * Math.max(1000L, resetIntervalTicks * 50L);'
           timer_count = text.count(old_timer)
@@ -41,40 +40,20 @@ jobs:
               raise SystemExit(f'Expected 2 timer expressions, found {timer_count}')
           text = text.replace(old_timer, new_timer)
 
-          # Always treat the central WorldGuard spawn region as safe, even with an old config.
           old_clear = '        excludedRegionNames.clear();\n'
           new_clear = '        excludedRegionNames.clear();\n        excludedRegionNames.add("spawn");\n'
           if old_clear not in text:
               raise SystemExit('Could not find excluded-region initialization')
           text = text.replace(old_clear, new_clear, 1)
 
-          # Respect WorldGuard's effective PvP state. If a higher-priority spawn region denies PvP,
-          # DuckyPVP must not treat that location as part of the arena even when sandpvp overlaps it.
           import_anchor = 'import com.sk89q.worldguard.WorldGuard;\n'
-          imports = (
-              'import com.sk89q.worldguard.WorldGuard;\n'
-              'import com.sk89q.worldguard.protection.flags.Flags;\n'
-              'import com.sk89q.worldguard.protection.regions.RegionQuery;\n'
-          )
+          imports = 'import com.sk89q.worldguard.WorldGuard;\nimport com.sk89q.worldguard.protection.flags.Flags;\nimport com.sk89q.worldguard.protection.regions.RegionQuery;\n'
           if import_anchor not in text:
               raise SystemExit('Could not find WorldGuard import anchor')
           text = text.replace(import_anchor, imports, 1)
 
-          arena_anchor = '''        if (arenaRegion == null || !arenaRegion.contains(point)) {
-            return false;
-        }
-
-'''
-          pvp_guard = '''        if (arenaRegion == null || !arenaRegion.contains(point)) {
-            return false;
-        }
-
-        RegionQuery query = WorldGuard.getInstance().getPlatform().getRegionContainer().createQuery();
-        if (!query.testState(BukkitAdapter.adapt(location), null, Flags.PVP)) {
-            return false;
-        }
-
-'''
+          arena_anchor = '        if (arenaRegion == null || !arenaRegion.contains(point)) {\n            return false;\n        }\n\n'
+          pvp_guard = '        if (arenaRegion == null || !arenaRegion.contains(point)) {\n            return false;\n        }\n\n        RegionQuery query = WorldGuard.getInstance().getPlatform().getRegionContainer().createQuery();\n        if (!query.testState(BukkitAdapter.adapt(location), null, Flags.PVP)) {\n            return false;\n        }\n\n'
           if arena_anchor not in text:
               raise SystemExit('Could not find arena containment check')
           text = text.replace(arena_anchor, pvp_guard, 1)
