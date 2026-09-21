@@ -55,6 +55,11 @@ public final class CombatManager {
     public void reload() {
         stopTaskOnly();
         loadSettings();
+        if (!enabled) {
+            lockedUntil.clear();
+            lastArenaLocations.clear();
+            return;
+        }
         start();
     }
 
