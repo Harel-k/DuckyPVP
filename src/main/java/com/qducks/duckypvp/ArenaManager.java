@@ -12,6 +12,8 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.boss.BarColor;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Entity;
@@ -19,6 +21,8 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
@@ -34,12 +38,14 @@ public final class ArenaManager {
     private final Set<UUID> playersInside = new HashSet<>();
     private final Set<EntityType> temporaryEntityTypes = new HashSet<>();
     private final Set<String> excludedRegionNames = new HashSet<>();
+    private final File originalBlocksFile;
 
     private String worldName;
     private String regionName;
     private long resetIntervalTicks;
     private long nextResetAtMillis;
     private BukkitTask tickTask;
+    private BukkitTask persistenceTask;
     private BossBar bossBar;
     private boolean resetting;
 
@@ -47,7 +53,9 @@ public final class ArenaManager {
         this.plugin = plugin;
         this.kitManager = kitManager;
         this.voteManager = voteManager;
+        this.originalBlocksFile = new File(plugin.getDataFolder(), "arena-original-blocks.yml");
         loadSettings();
+        loadOriginalBlocks();
         rebuildBossBar();
     }
 
@@ -60,6 +68,11 @@ public final class ArenaManager {
 
     public void stop() {
         stopTaskOnly();
+        if (persistenceTask != null) {
+            persistenceTask.cancel();
+            persistenceTask = null;
+        }
+        saveOriginalBlocks();
         if (bossBar != null) {
             bossBar.removeAll();
         }
@@ -254,7 +267,9 @@ public final class ArenaManager {
             return;
         }
         BlockKey key = new BlockKey(block.getWorld().getName(), block.getX(), block.getY(), block.getZ());
-        originalBlocks.putIfAbsent(key, originalData.clone());
+        if (originalBlocks.putIfAbsent(key, originalData.clone()) == null) {
+            scheduleOriginalBlocksSave();
+        }
     }
 
     public void naturalReset() {
@@ -299,6 +314,7 @@ public final class ArenaManager {
                 }
             }
             originalBlocks.clear();
+            clearOriginalBlocksFile();
 
             if (plugin.getConfig().getBoolean("reset.remove-temporary-entities", true)) {
                 removeTemporaryEntities();
@@ -341,6 +357,92 @@ public final class ArenaManager {
             if (temporaryEntityTypes.contains(entity.getType()) && isInArena(entity.getLocation())) {
                 entity.remove();
             }
+        }
+    }
+
+    private void scheduleOriginalBlocksSave() {
+        if (persistenceTask != null) {
+            return;
+        }
+        persistenceTask = Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            persistenceTask = null;
+            saveOriginalBlocks();
+        }, 20L);
+    }
+
+    private void loadOriginalBlocks() {
+        if (!originalBlocksFile.isFile()) {
+            return;
+        }
+
+        YamlConfiguration data = YamlConfiguration.loadConfiguration(originalBlocksFile);
+        ConfigurationSection blocks = data.getConfigurationSection("blocks");
+        if (blocks == null) {
+            return;
+        }
+
+        int loaded = 0;
+        for (String id : blocks.getKeys(false)) {
+            ConfigurationSection section = blocks.getConfigurationSection(id);
+            if (section == null) {
+                continue;
+            }
+            String world = section.getString("world");
+            String blockData = section.getString("data");
+            if (world == null || blockData == null) {
+                continue;
+            }
+            try {
+                BlockKey key = new BlockKey(
+                        world,
+                        section.getInt("x"),
+                        section.getInt("y"),
+                        section.getInt("z")
+                );
+                originalBlocks.put(key, Bukkit.createBlockData(blockData));
+                loaded++;
+            } catch (IllegalArgumentException exception) {
+                plugin.getLogger().warning("Skipping invalid persisted arena block " + id + ": " + exception.getMessage());
+            }
+        }
+
+        if (loaded > 0) {
+            plugin.getLogger().warning("Recovered " + loaded + " pending arena block restoration(s) from the previous server run.");
+        }
+    }
+
+    private void saveOriginalBlocks() {
+        if (originalBlocks.isEmpty()) {
+            clearOriginalBlocksFile();
+            return;
+        }
+
+        YamlConfiguration data = new YamlConfiguration();
+        int index = 0;
+        for (Map.Entry<BlockKey, BlockData> entry : originalBlocks.entrySet()) {
+            String base = "blocks." + index++;
+            BlockKey key = entry.getKey();
+            data.set(base + ".world", key.world());
+            data.set(base + ".x", key.x());
+            data.set(base + ".y", key.y());
+            data.set(base + ".z", key.z());
+            data.set(base + ".data", entry.getValue().getAsString());
+        }
+
+        try {
+            File parent = originalBlocksFile.getParentFile();
+            if (parent != null && !parent.exists() && !parent.mkdirs()) {
+                throw new IOException("Could not create DuckyPVP data folder");
+            }
+            data.save(originalBlocksFile);
+        } catch (IOException exception) {
+            plugin.getLogger().severe("Could not persist pending arena block restorations: " + exception.getMessage());
+        }
+    }
+
+    private void clearOriginalBlocksFile() {
+        if (originalBlocksFile.exists() && !originalBlocksFile.delete()) {
+            plugin.getLogger().warning("Could not delete completed arena restoration journal: " + originalBlocksFile.getName());
         }
     }
 
