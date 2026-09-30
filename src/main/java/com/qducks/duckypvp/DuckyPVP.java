@@ -72,6 +72,10 @@ public final class DuckyPVP extends JavaPlugin {
      * Integration hook for trusted moderation systems that intentionally wipe
      * a player's saved gameplay state after first taking their own recovery snapshot.
      */
+    public String exportPlayerBackup(UUID uuid) {
+        return kitManager == null ? "" : kitManager.exportBackup(uuid);
+    }
+
     public boolean discardPlayerBackup(UUID uuid) {
         return kitManager != null && kitManager.discardBackup(uuid);
     }
