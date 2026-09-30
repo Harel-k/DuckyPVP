@@ -155,6 +155,26 @@ public final class KitManager {
     }
 
     /**
+     * Returns a self-contained YAML snapshot of one player's saved pre-arena
+     * state, or an empty string if no backup exists.
+     */
+    public String exportBackup(UUID uuid) {
+        String root = "players." + uuid;
+        ConfigurationSection section = backups.getConfigurationSection(root);
+        if (section == null) {
+            return "";
+        }
+
+        YamlConfiguration export = new YamlConfiguration();
+        for (String key : section.getKeys(true)) {
+            if (!section.isConfigurationSection(key)) {
+                export.set("player." + key, section.get(key));
+            }
+        }
+        return export.saveToString();
+    }
+
+    /**
      * Permanently discards a saved pre-arena state. This is intended only for
      * trusted administrative integrations that have already created their own
      * recovery snapshot before performing a deliberate full player-data wipe.
