@@ -15,6 +15,11 @@ import org.bukkit.potion.PotionType;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -131,17 +136,68 @@ public final class KitManager {
     }
 
     public void enterArena(Player player) {
-        if (!hasBackup(player.getUniqueId())) {
-            saveBackup(player);
+        if (!hasBackup(player.getUniqueId()) && !saveBackup(player)) {
+            plugin.getLogger().severe("Refusing to apply PvP kit because the player's inventory backup could not be persisted: "
+                    + player.getUniqueId());
+            player.sendMessage(ChatColor.RED + "Could not safely enter the PvP arena. Please try again.");
+            return;
         }
         applyActiveKit(player);
     }
 
     public void rekit(Player player) {
-        if (!hasBackup(player.getUniqueId())) {
-            saveBackup(player);
+        if (!hasBackup(player.getUniqueId()) && !saveBackup(player)) {
+            plugin.getLogger().severe("Refusing to re-kit because the player's inventory backup could not be persisted: "
+                    + player.getUniqueId());
+            return;
         }
         applyActiveKit(player);
+    }
+
+    /**
+     * Returns a self-contained YAML snapshot of one player's saved pre-arena
+     * state, or an empty string if no backup exists.
+     */
+    public String exportBackup(UUID uuid) {
+        String root = "players." + uuid;
+        ConfigurationSection section = backups.getConfigurationSection(root);
+        if (section == null) {
+            return "";
+        }
+
+        YamlConfiguration export = new YamlConfiguration();
+        for (String key : section.getKeys(true)) {
+            if (!section.isConfigurationSection(key)) {
+                export.set("player." + key, section.get(key));
+            }
+        }
+        return export.saveToString();
+    }
+
+    /**
+     * Permanently discards a saved pre-arena state. This is intended only for
+     * trusted administrative integrations that have already created their own
+     * recovery snapshot before performing a deliberate full player-data wipe.
+     */
+    public boolean discardBackup(UUID uuid) {
+        String root = "players." + uuid;
+        if (!backups.contains(root)) {
+            return true;
+        }
+
+        String before = backups.saveToString();
+        backups.set(root, null);
+        if (saveBackups()) {
+            return true;
+        }
+
+        try {
+            backups.loadFromString(before);
+        } catch (Exception exception) {
+            plugin.getLogger().severe("Could not restore in-memory DuckyPVP backup state after failed discard: "
+                    + exception.getMessage());
+        }
+        return false;
     }
 
     public void leaveArena(Player player) {
@@ -286,7 +342,7 @@ public final class KitManager {
         }
     }
 
-    private void saveBackup(Player player) {
+    private boolean saveBackup(Player player) {
         String root = "players." + player.getUniqueId();
         PlayerInventory inventory = player.getInventory();
 
@@ -298,7 +354,7 @@ public final class KitManager {
         for (int i = 0; i < inventory.getSize(); i++) {
             backups.set(root + ".contents." + i, inventory.getItem(i));
         }
-        saveBackups();
+        return saveBackups();
     }
 
     private void restoreBackup(Player player) {
@@ -328,11 +384,22 @@ public final class KitManager {
         player.updateInventory();
     }
 
-    private void saveBackups() {
+    private boolean saveBackups() {
         try {
-            backups.save(backupsFile);
+            Path parent = backupsFile.toPath().getParent();
+            Files.createDirectories(parent);
+            Path temp = Files.createTempFile(parent, "player-backups-", ".tmp");
+            Files.writeString(temp, backups.saveToString(), StandardCharsets.UTF_8);
+            try {
+                Files.move(temp, backupsFile.toPath(),
+                        StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            } catch (AtomicMoveNotSupportedException exception) {
+                Files.move(temp, backupsFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            }
+            return true;
         } catch (IOException ex) {
             plugin.getLogger().severe("Could not save player-backups.yml: " + ex.getMessage());
+            return false;
         }
     }
 
