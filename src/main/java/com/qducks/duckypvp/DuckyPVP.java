@@ -3,6 +3,8 @@ package com.qducks.duckypvp;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.UUID;
+
 public final class DuckyPVP extends JavaPlugin {
     private KitManager kitManager;
     private VoteManager voteManager;
@@ -64,6 +66,18 @@ public final class DuckyPVP extends JavaPlugin {
         if (kitManager != null) {
             kitManager.restoreAllOnline();
         }
+    }
+
+    /**
+     * Integration hook for trusted moderation systems that intentionally wipe
+     * a player's saved gameplay state after first taking their own recovery snapshot.
+     */
+    public boolean discardPlayerBackup(UUID uuid) {
+        return kitManager != null && kitManager.discardBackup(uuid);
+    }
+
+    public boolean hasPlayerBackup(UUID uuid) {
+        return kitManager != null && kitManager.hasBackup(uuid);
     }
 
     public void reloadDuckyPvp() {
