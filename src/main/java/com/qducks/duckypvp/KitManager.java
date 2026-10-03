@@ -13,6 +13,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionType;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,6 +38,7 @@ public final class KitManager {
     private YamlConfiguration kits;
     private YamlConfiguration backups;
     private String activeKit;
+    private BukkitTask saveRetryTask;
 
     public KitManager(DuckyPVP plugin) {
         this.plugin = plugin;
@@ -401,8 +403,28 @@ public final class KitManager {
         player.setSaturation((float) Math.max(0.0, Math.min(20.0, backups.getDouble(root + ".saturation", 5.0))));
 
         backups.set(root, null);
-        saveBackups();
+        if (!saveBackups()) {
+            // The backup was already applied. If the stale copy stayed on disk it would be
+            // restored again after a restart (duplicating anything moved out since), so keep
+            // retrying until the removal is persisted.
+            plugin.getLogger().severe("Restored " + player.getName()
+                    + "'s inventory but could not remove the backup from disk; retrying until it succeeds.");
+            scheduleSaveRetry();
+        }
         player.updateInventory();
+    }
+
+    private void scheduleSaveRetry() {
+        if (saveRetryTask != null) {
+            return;
+        }
+        saveRetryTask = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            if (saveBackups()) {
+                plugin.getLogger().info("player-backups.yml saved after an earlier failure.");
+                saveRetryTask.cancel();
+                saveRetryTask = null;
+            }
+        }, 100L, 100L);
     }
 
     private boolean saveBackups() {
