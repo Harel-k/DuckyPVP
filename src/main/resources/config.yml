@@ -64,3 +64,38 @@ reset:
 kits:
   heal-on-enter: true
   feed-on-enter: true
+
+# Keeps kit items inside the arena: kit items can't be dropped, stored in
+# containers/item frames, crafted with, or picked up outside the arena, and
+# blocks broken by kitted players inside the arena don't drop anything.
+# Missing keys fall back to these defaults, so older config.yml files are covered.
+kit-protection:
+  enabled: true
+  # Commands blocked while a player holds an arena kit (selling, storing or
+  # receiving items that would be lost or leaked when the kit is removed).
+  blocked-commands:
+    - sell
+    - sellall
+    - ah
+    - auctionhouse
+    - order
+    - orders
+    - shop
+    - trade
+    - ec
+    - enderchest
+    - echest
+    - craft
+    - workbench
+    - wb
+    - anvil
+    - pv
+    - playervault
+    - playervaults
+    - trash
+    - disposal
+    - crates
+    - abuse
+    - adminmode
+  messages:
+    command-blocked: "&6&lDUCKY PVP &8» &7You cannot use &f/%command% &7while you have an arena kit."

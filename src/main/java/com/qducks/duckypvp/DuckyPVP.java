@@ -10,6 +10,7 @@ public final class DuckyPVP extends JavaPlugin {
     private VoteManager voteManager;
     private ArenaManager arenaManager;
     private CombatManager combatManager;
+    private KitItemGuard kitItemGuard;
 
     @Override
     public void onEnable() {
@@ -21,6 +22,7 @@ public final class DuckyPVP extends JavaPlugin {
             voteManager = new VoteManager(kitManager);
             arenaManager = new ArenaManager(this, kitManager, voteManager);
             combatManager = new CombatManager(this, arenaManager);
+            kitItemGuard = new KitItemGuard(this, arenaManager, kitManager);
         } catch (Exception ex) {
             getLogger().severe("DuckyPVP could not start: " + ex.getMessage());
             getServer().getPluginManager().disablePlugin(this);
@@ -29,6 +31,7 @@ public final class DuckyPVP extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(new ArenaListener(this, arenaManager, kitManager), this);
         getServer().getPluginManager().registerEvents(new CombatCommandListener(this, arenaManager, combatManager), this);
+        getServer().getPluginManager().registerEvents(kitItemGuard, this);
 
         VoteKitMenu voteMenu = new VoteKitMenu(this, kitManager, voteManager);
         getServer().getPluginManager().registerEvents(voteMenu, this);
@@ -90,5 +93,6 @@ public final class DuckyPVP extends JavaPlugin {
         voteManager.sanitizeAfterReload();
         arenaManager.reload();
         combatManager.reload();
+        kitItemGuard.reload();
     }
 }

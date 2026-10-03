@@ -11,6 +11,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionType;
 
 import java.io.File;
@@ -30,6 +31,7 @@ public final class KitManager {
     private final DuckyPVP plugin;
     private final File kitsFile;
     private final File backupsFile;
+    private final NamespacedKey kitItemKey;
     private final Random random = new Random();
 
     private YamlConfiguration kits;
@@ -40,6 +42,7 @@ public final class KitManager {
         this.plugin = plugin;
         this.kitsFile = new File(plugin.getDataFolder(), "kits.yml");
         this.backupsFile = new File(plugin.getDataFolder(), "player-backups.yml");
+        this.kitItemKey = new NamespacedKey(plugin, "kit_item");
         reload();
         this.backups = YamlConfiguration.loadConfiguration(backupsFile);
         if (activeKit == null) {
@@ -135,7 +138,17 @@ public final class KitManager {
         return backups.contains("players." + uuid);
     }
 
+    /** True if the item was handed out by an arena kit. */
+    public boolean isKitItem(ItemStack item) {
+        if (item == null || item.getType().isAir() || !item.hasItemMeta()) {
+            return false;
+        }
+        return item.getItemMeta().getPersistentDataContainer().has(kitItemKey, PersistentDataType.BYTE);
+    }
+
     public void enterArena(Player player) {
+        // Return any cursor/crafting-grid items to the inventory so the backup includes them.
+        player.closeInventory();
         if (!hasBackup(player.getUniqueId()) && !saveBackup(player)) {
             plugin.getLogger().severe("Refusing to apply PvP kit because the player's inventory backup could not be persisted: "
                     + player.getUniqueId());
@@ -280,6 +293,7 @@ public final class KitManager {
         }
 
         if (meta != null) {
+            meta.getPersistentDataContainer().set(kitItemKey, PersistentDataType.BYTE, (byte) 1);
             item.setItemMeta(meta);
         }
 
@@ -363,6 +377,13 @@ public final class KitManager {
         if (!backups.contains(root)) {
             return;
         }
+
+        // A kit item held on the cursor is not part of the inventory and would
+        // otherwise survive the restore when the inventory view closes.
+        if (isKitItem(player.getItemOnCursor())) {
+            player.setItemOnCursor(null);
+        }
+        player.closeInventory();
 
         PlayerInventory inventory = player.getInventory();
         inventory.clear();
