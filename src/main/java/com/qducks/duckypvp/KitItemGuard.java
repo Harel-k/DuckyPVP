@@ -50,11 +50,9 @@ import java.util.Set;
  * arena kit, so normal gameplay outside the arena is unaffected.
  */
 public final class KitItemGuard implements Listener {
+    // Economy only. Storage/crafting is already covered by the item rules below.
     private static final List<String> DEFAULT_BLOCKED_COMMANDS = List.of(
-            "sell", "sellall", "ah", "auctionhouse", "order", "orders", "shop", "trade",
-            "ec", "enderchest", "echest", "craft", "workbench", "wb", "anvil",
-            "pv", "playervault", "playervaults", "trash", "disposal", "crates",
-            "abuse", "adminmode"
+            "sell", "sellall", "ah", "auctionhouse", "order", "orders", "shop", "pay", "trade"
     );
 
     private final DuckyPVP plugin;
