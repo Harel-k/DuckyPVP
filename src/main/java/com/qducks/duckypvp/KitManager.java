@@ -148,6 +148,44 @@ public final class KitManager {
         return item.getItemMeta().getPersistentDataContainer().has(kitItemKey, PersistentDataType.BYTE);
     }
 
+    /**
+     * Removes kit items from a player who is not holding an arena kit. Kit items should only exist
+     * while a backup is held, so anything left over leaked out (profile switches, crashes, staff
+     * tools). Returns how many stacks were removed.
+     */
+    public int purgeLeakedKitItems(Player player) {
+        if (hasBackup(player.getUniqueId())) {
+            return 0;
+        }
+        int removed = 0;
+        PlayerInventory inventory = player.getInventory();
+        ItemStack[] contents = inventory.getContents();
+        for (int i = 0; i < contents.length; i++) {
+            if (isKitItem(contents[i])) {
+                contents[i] = null;
+                removed++;
+            }
+        }
+        inventory.setContents(contents);
+        ItemStack[] ender = player.getEnderChest().getContents();
+        for (int i = 0; i < ender.length; i++) {
+            if (isKitItem(ender[i])) {
+                ender[i] = null;
+                removed++;
+            }
+        }
+        player.getEnderChest().setContents(ender);
+        if (isKitItem(player.getItemOnCursor())) {
+            player.setItemOnCursor(null);
+            removed++;
+        }
+        if (removed > 0) {
+            plugin.getLogger().warning("Removed " + removed + " leaked arena kit stack(s) from " + player.getName() + ".");
+            player.updateInventory();
+        }
+        return removed;
+    }
+
     public void enterArena(Player player) {
         // Return any cursor/crafting-grid items to the inventory so the backup includes them.
         player.closeInventory();

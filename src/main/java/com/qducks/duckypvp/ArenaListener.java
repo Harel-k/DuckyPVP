@@ -34,7 +34,12 @@ public final class ArenaListener implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        plugin.getServer().getScheduler().runTask(plugin, () -> arena.syncPlayer(event.getPlayer()));
+        plugin.getServer().getScheduler().runTask(plugin, () -> {
+            arena.syncPlayer(event.getPlayer());
+            if (event.getPlayer().isOnline() && !arena.isTrackedInside(event.getPlayer())) {
+                kits.purgeLeakedKitItems(event.getPlayer());
+            }
+        });
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

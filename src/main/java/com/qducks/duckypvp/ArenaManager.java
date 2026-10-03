@@ -269,10 +269,13 @@ public final class ArenaManager {
             if (playersInside.remove(uuid) && bossBar != null) {
                 bossBar.removePlayer(player);
             }
+            kitManager.purgeLeakedKitItems(player);
             return;
         }
         playersInside.add(uuid);
         if (!kitManager.hasBackup(uuid)) {
+            // Don't let leaked kit items get backed up as the player's real inventory.
+            kitManager.purgeLeakedKitItems(player);
             kitManager.enterArena(player);
         }
         if (bossBar != null) {
