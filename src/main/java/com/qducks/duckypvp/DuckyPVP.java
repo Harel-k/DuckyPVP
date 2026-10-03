@@ -1,6 +1,7 @@
 package com.qducks.duckypvp;
 
 import org.bukkit.command.PluginCommand;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.UUID;
@@ -85,6 +86,26 @@ public final class DuckyPVP extends JavaPlugin {
 
     public boolean hasPlayerBackup(UUID uuid) {
         return kitManager != null && kitManager.hasBackup(uuid);
+    }
+
+    /**
+     * Integration hook for profile switchers (SDS Abuse Mode): gives the player back the inventory
+     * saved when they entered the arena, removing the kit, so the switcher captures real items.
+     * Returns true if the player no longer holds a kit backup.
+     */
+    public boolean releaseArenaKit(Player player) {
+        if (kitManager == null || !kitManager.hasBackup(player.getUniqueId())) {
+            return true;
+        }
+        kitManager.leaveArena(player);
+        return !kitManager.hasBackup(player.getUniqueId());
+    }
+
+    /** Integration hook: re-applies the arena kit if the player is inside the arena without one. */
+    public void syncArenaKit(Player player) {
+        if (arenaManager != null) {
+            arenaManager.syncKit(player);
+        }
     }
 
     public void reloadDuckyPvp() {

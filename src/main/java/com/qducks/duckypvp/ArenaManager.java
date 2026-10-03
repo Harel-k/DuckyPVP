@@ -262,6 +262,24 @@ public final class ArenaManager {
         return playersInside.contains(player.getUniqueId());
     }
 
+    /** Re-applies the arena kit for a player standing in the arena without one (after a profile switch). */
+    public void syncKit(Player player) {
+        UUID uuid = player.getUniqueId();
+        if (!isInArena(player.getLocation())) {
+            if (playersInside.remove(uuid) && bossBar != null) {
+                bossBar.removePlayer(player);
+            }
+            return;
+        }
+        playersInside.add(uuid);
+        if (!kitManager.hasBackup(uuid)) {
+            kitManager.enterArena(player);
+        }
+        if (bossBar != null) {
+            bossBar.addPlayer(player);
+        }
+    }
+
     public void recordOriginal(Block block, BlockData originalData) {
         if (resetting || block == null || originalData == null || !isInArena(block.getLocation())) {
             return;
