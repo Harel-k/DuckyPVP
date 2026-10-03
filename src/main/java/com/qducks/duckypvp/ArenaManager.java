@@ -13,6 +13,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.boss.BarColor;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
@@ -23,6 +24,11 @@ import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
@@ -328,14 +334,23 @@ public final class ArenaManager {
     private void performArenaCleanup() {
         resetting = true;
         try {
+            Map<BlockKey, BlockData> unresolved = new HashMap<>();
             for (Map.Entry<BlockKey, BlockData> entry : originalBlocks.entrySet()) {
                 Block block = entry.getKey().resolve();
                 if (block != null) {
                     block.setBlockData(entry.getValue(), false);
+                } else {
+                    // World not loaded: keep the entry so it is restored on a later reset.
+                    unresolved.put(entry.getKey(), entry.getValue());
                 }
             }
             originalBlocks.clear();
-            clearOriginalBlocksFile();
+            originalBlocks.putAll(unresolved);
+            if (!unresolved.isEmpty()) {
+                plugin.getLogger().warning("Kept " + unresolved.size()
+                        + " arena block restoration(s) for a world that is not loaded.");
+            }
+            saveOriginalBlocks();
 
             if (plugin.getConfig().getBoolean("reset.remove-temporary-entities", true)) {
                 removeTemporaryEntities();
@@ -396,7 +411,18 @@ public final class ArenaManager {
             return;
         }
 
-        YamlConfiguration data = YamlConfiguration.loadConfiguration(originalBlocksFile);
+        YamlConfiguration data = new YamlConfiguration();
+        try {
+            data.load(originalBlocksFile);
+        } catch (IOException | InvalidConfigurationException exception) {
+            // Keep the unreadable journal for manual recovery instead of letting the next save erase it.
+            File corrupt = new File(originalBlocksFile.getParentFile(),
+                    originalBlocksFile.getName() + ".corrupt-" + System.currentTimeMillis());
+            boolean moved = originalBlocksFile.renameTo(corrupt);
+            plugin.getLogger().severe("Could not read the arena restoration journal (" + exception.getMessage() + "). "
+                    + (moved ? "Kept it as " + corrupt.getName() + " for manual recovery." : "Leaving it in place."));
+            return;
+        }
         ConfigurationSection blocks = data.getConfigurationSection("blocks");
         if (blocks == null) {
             return;
@@ -451,11 +477,20 @@ public final class ArenaManager {
         }
 
         try {
-            File parent = originalBlocksFile.getParentFile();
-            if (parent != null && !parent.exists() && !parent.mkdirs()) {
-                throw new IOException("Could not create DuckyPVP data folder");
+            // Write to a temp file and move it into place so a crash mid-write can't corrupt the journal.
+            Path target = originalBlocksFile.toPath();
+            Files.createDirectories(target.getParent());
+            Path temp = Files.createTempFile(target.getParent(), "arena-original-blocks-", ".tmp");
+            try {
+                Files.writeString(temp, data.saveToString(), StandardCharsets.UTF_8);
+                try {
+                    Files.move(temp, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+                } catch (AtomicMoveNotSupportedException exception) {
+                    Files.move(temp, target, StandardCopyOption.REPLACE_EXISTING);
+                }
+            } finally {
+                Files.deleteIfExists(temp);
             }
-            data.save(originalBlocksFile);
         } catch (IOException exception) {
             plugin.getLogger().severe("Could not persist pending arena block restorations: " + exception.getMessage());
         }

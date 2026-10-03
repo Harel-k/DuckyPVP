@@ -101,6 +101,14 @@ public final class DuckyPVP extends JavaPlugin {
         return !kitManager.hasBackup(player.getUniqueId());
     }
 
+    /**
+     * Integration hook: true while DuckyPVP's arena combat lock (and its action bar) is active, so
+     * other combat plugins can avoid overwriting that action bar.
+     */
+    public boolean isArenaCombatLocked(Player player) {
+        return combatManager != null && combatManager.isLocked(player);
+    }
+
     /** Integration hook: re-applies the arena kit if the player is inside the arena without one. */
     public void syncArenaKit(Player player) {
         if (arenaManager != null) {
