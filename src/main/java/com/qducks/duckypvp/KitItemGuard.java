@@ -4,6 +4,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.AbstractArrow;
 import org.bukkit.entity.Allay;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
@@ -32,6 +33,7 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerPickupArrowEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
@@ -130,6 +132,20 @@ public final class KitItemGuard implements Listener {
         if (player != null && hasKit(player)) {
             event.setCancelled(true);
         }
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onArrowPickup(PlayerPickupArrowEvent event) {
+        // Shot kit arrows can land outside the arena; arrow pickups don't fire EntityPickupItemEvent.
+        if (!enabled || !(event.getArrow() instanceof AbstractArrow arrow) || !kits.isKitItem(arrow.getItemStack())) {
+            return;
+        }
+        Player player = event.getPlayer();
+        if (hasKit(player) && arena.isInArena(player.getLocation())) {
+            return;
+        }
+        event.setCancelled(true);
+        arrow.remove();
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -254,8 +270,9 @@ public final class KitItemGuard implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockDrop(BlockDropItemEvent event) {
-        // Placed kit blocks (obsidian, anchors, glowstone) would otherwise drop as normal items.
-        if (enabled && hasKit(event.getPlayer()) && arena.isInArena(event.getBlock().getLocation())) {
+        // Placed kit blocks (obsidian, planks, cobble...) would otherwise drop as normal items,
+        // including when broken from outside the arena. The arena is restored on reset anyway.
+        if (enabled && arena.isInArena(event.getBlock().getLocation())) {
             event.getItems().clear();
         }
     }
